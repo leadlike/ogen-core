@@ -66,6 +66,12 @@ export class RiskGateway implements Broker {
   close(): void { this.d.stateFile.release(); }
 
   // ---- pass-through reads -------------------------------------------------
+  /** A price for an allowlisted symbol, so the worker sizes against the same feed the gateway judges with. Null if none. */
+  async quoteFor(instrumentId: string): Promise<{ instrumentId: string; priceMinor: string; bidMinor: string | null; askMinor: string | null; asOfMs: number } | null> {
+    if (!this.d.limits.allowedSymbols.has(instrumentId)) return null;
+    const q = await this.d.quotes.quote(instrumentId);
+    return q ? { instrumentId, priceMinor: q.priceMinor, bidMinor: q.bidMinor ?? null, askMinor: q.askMinor ?? null, asOfMs: q.asOfMs } : null;
+  }
   account(id: string): Promise<BrokerAccount> { this.own(id); return this.d.broker.account(id); }
   positions(id: string): Promise<BrokerPosition[]> { this.own(id); return this.d.broker.positions(id); }
   getOrder(id: string, clientOrderId: string): Promise<BrokerOrder | null> { this.own(id); return this.d.broker.getOrder(id, clientOrderId); }

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { OrderRefused, type Broker, type BrokerAccount, type BrokerCapabilities, type BrokerOrder, type BrokerPosition, type Execution, type OrderIntent } from '../broker/types';
-import { accountSchema, capabilitiesSchema, capitalViewSchema, executionsSchema, orderSchema, positionsSchema } from './wire';
+import { accountSchema, capabilitiesSchema, capitalViewSchema, executionsSchema, orderSchema, positionsSchema, quoteSchema } from './wire';
 
 
 /**
@@ -54,6 +54,7 @@ export class GatewayBroker implements Broker {
     if (!res.ok) throw new Error(`GATEWAY_ERROR_${res.status}`);
     return capitalViewSchema.parse(await res.json());
   }
+  quote(instrumentId: string) { return this.call('/quote', { instrumentId }, quoteSchema); }
   /** Freezes new entries at the gateway. Only ever makes things stricter. */
   async halt(reason: string): Promise<void> { await this.call('/halt', { reason }, z.object({ ok: z.literal(true) })); }
   cancel(accountId: string, clientOrderId: string): Promise<BrokerOrder> { return this.call('/cancel', { accountId, clientOrderId }, orderSchema) as Promise<BrokerOrder>; }

@@ -37,3 +37,8 @@ export const capitalViewSchema = z.object({
   cashMinor: int,
   positions: z.array(z.object({ instrumentId: id, quantity: int, costMinor: int, markMinor: int.nullable() }).strict()),
 }).strict();
+
+export const quoteReq = z.object({ instrumentId: id }).strict();
+export const quoteSchema = z.object({
+  instrumentId: id, priceMinor: int, bidMinor: int.nullable(), askMinor: int.nullable(), asOfMs: z.number().int().nonnegative(),
+}).strict().nullable();

@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { timingSafeEqual } from 'node:crypto';
 import { OrderRefused, type OrderIntent } from '../broker/types';
 import type { RiskGateway } from './risk';
-import { accountReq, executionsReq, haltReq, noteReq, orderReq, placeReq, releaseReq } from './wire';
+import { accountReq, executionsReq, haltReq, noteReq, orderReq, placeReq, quoteReq, releaseReq } from './wire';
 
 export interface GatewayServerOptions {
   gateway: RiskGateway;
@@ -79,6 +79,7 @@ export function createGatewayServer(o: GatewayServerOptions): { server: Server; 
         case '/order': { const b = orderReq.parse(body); return send(res, 200, await g.getOrder(b.accountId, b.clientOrderId)); }
         case '/cancel': { const b = orderReq.parse(body); return send(res, 200, await g.cancel(b.accountId, b.clientOrderId)); }
         case '/executions': { const b = executionsReq.parse(body); return send(res, 200, await g.executions(b.accountId, b.sinceMs)); }
+        case '/quote': return send(res, 200, await g.quoteFor(quoteReq.parse(body).instrumentId));
         case '/halt': await g.halt(haltReq.parse(body).reason); return send(res, 200, { ok: true });
         case '/place': return send(res, 200, await g.place(placeReq.parse(body).intent as OrderIntent));
         case '/admin/resume-reconciliation': await g.resumeAfterReconciliation(noteReq.parse(body).note); return send(res, 200, { ok: true });
