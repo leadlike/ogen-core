@@ -6,6 +6,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src
+COPY migrations ./migrations
 USER node
 EXPOSE 8080
 CMD ["npx", "tsx", "src/gateway/main.ts"]

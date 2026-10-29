@@ -7,13 +7,16 @@ import { GatewayBroker } from '../gateway/client';
 import { parseGatewayConfig } from '../gateway/config';
 import { migrate } from '../store/migrate';
 import { createPool } from '../store/store';
+import { privateAddress } from '../gateway/daemon';
+import { databaseUrl, gatewayUrl } from './config';
 import { ProbeStrategy } from './strategy';
 import { Runner } from './runner';
 import type { OrderIntent } from '../broker/types';
 
 const env = z.object({
-  DATABASE_URL: z.string().min(1),
-  GATEWAY_URL: z.string().url(),
+  DATABASE_URL: z.string().min(1).optional(),
+  DB_HOST: z.string().optional(), DB_NAME: z.string().optional(), DB_USER: z.string().optional(), DB_PASSWORD: z.string().optional(), DB_PORT: z.string().optional(),
+  GATEWAY_URL: z.string().min(1),
   GATEWAY_TOKEN: z.string().min(32),
   IB_ACCOUNT: z.string().regex(/^DU[0-9]+$/, 'paper accounts only (DU…)'),
   BROKER_RISK_CONFIG: z.string().optional(),
@@ -30,9 +33,9 @@ async function main(): Promise<void> {
   const e = env.parse(process.env);
   if (e.BROKER_RISK_CONFIG && e.BROKER_RISK_CONFIG_JSON) throw new Error('ENV_CONFLICT: set one of BROKER_RISK_CONFIG, BROKER_RISK_CONFIG_JSON');
   const limits = parseGatewayConfig(JSON.parse(e.BROKER_RISK_CONFIG_JSON ?? readFileSync(e.BROKER_RISK_CONFIG ?? '', 'utf8')));
-  const pool = createPool(e.DATABASE_URL, 5);
+  const pool = createPool(databaseUrl(process.env), 5);
   await migrate(pool);
-  const broker = await GatewayBroker.connect(e.GATEWAY_URL, e.GATEWAY_TOKEN);
+  const broker = await GatewayBroker.connect(gatewayUrl(e.GATEWAY_URL, privateAddress), e.GATEWAY_TOKEN);
   const acct = await broker.account(e.IB_ACCOUNT);
   if (acct.currency !== limits.currency) throw new Error(`CURRENCY_MISMATCH: account ${acct.currency}, limits ${limits.currency}`);
   const books = new BrokerBooks(pool, e.IB_ACCOUNT);

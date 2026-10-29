@@ -150,3 +150,21 @@ describe('runner against the real gateway', () => {
     } finally { await w.srv.stop(); }
   });
 });
+
+import { databaseUrl, gatewayUrl } from '../src/equities/config';
+describe('worker configuration', () => {
+  it('builds the database URL from ECS parts, escaping the password and requiring TLS', () => {
+    const u = databaseUrl({ DB_HOST: 'h.rds.amazonaws.com', DB_NAME: 'ogen', DB_USER: 'app', DB_PASSWORD: 'p@ss/w:rd#1' });
+    expect(u).toBe('postgres://app:p%40ss%2Fw%3Ard%231@h.rds.amazonaws.com:5432/ogen?sslmode=no-verify');
+    const parsed = new URL(u);
+    expect(decodeURIComponent(parsed.password)).toBe('p@ss/w:rd#1');
+  });
+  it('a full DATABASE_URL wins; missing parts fail loudly', () => {
+    expect(databaseUrl({ DATABASE_URL: 'postgres://x', DB_HOST: 'h' })).toBe('postgres://x');
+    expect(() => databaseUrl({ DB_HOST: 'h', DB_NAME: 'n', DB_USER: 'u' })).toThrow(/ENV_MISSING/);
+  });
+  it('resolves the host `auto` to the task address and leaves other hosts alone', () => {
+    expect(gatewayUrl('http://auto:8080', () => '10.20.10.5')).toBe('http://10.20.10.5:8080');
+    expect(gatewayUrl('http://10.1.2.3:8080', () => { throw new Error('should not be called'); })).toBe('http://10.1.2.3:8080');
+  });
+});
