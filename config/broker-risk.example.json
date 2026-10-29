@@ -1,0 +1,34 @@
+{
+  "capital": {
+    "allocatedMicroUsd": 500000000,
+    "maxPerPositionPct": 16.67,
+    "maxGrossExposurePct": 50,
+    "maxOpenPositions": 3
+  },
+  "loss": {
+    "perTradeRiskPct": 2,
+    "dailyLossLimitMicroUsd": 10000000,
+    "maxDrawdownPct": 8,
+    "flattenOnDrawdown": true,
+    "feeReserveMicroUsd": 1000000
+  },
+  "account": {
+    "currency": "USD",
+    "allowMargin": false,
+    "allowShort": false,
+    "allowFractional": false
+  },
+  "instruments": { "allowedSymbols": ["AAA", "BBB", "CCC", "DDD", "EEE", "SCHD", "XLF", "VWO", "EEM"] },
+  "quotes": { "maxAgeMs": 15000, "maxSpreadBps": 50 },
+  "session": {
+    "timezone": "America/New_York",
+    "entryWindow": { "skipFirstMinutes": 5, "skipLastMinutes": 15 },
+    "extraClosedDates": [],
+    "extraEarlyCloseDates": []
+  },
+  "reconciliation": {
+    "allowedFeeVarianceMicroUsd": 50000,
+    "unresolvedOrderAfterMs": 300000,
+    "executionOverlapMs": 60000
+  }
+}
